@@ -72,11 +72,3 @@ suspend fun listModels(): ModelResponse {
     return client.get("v1/models").body()
 }
 
-suspend fun main() {
-    val response = askChatGptWithLocalImage(
-        "On each row in this image there is kanji, hiragana and english meaning. Extract that list.",
-        "/Users/rhast/Downloads/27.jpg",
-        4096
-    )
-    println(response)
-}
