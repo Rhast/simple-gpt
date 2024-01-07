@@ -10,9 +10,8 @@ import com.lerw.chatgpt.file.readFromFirstExisting
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -21,6 +20,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.*
 import io.ktor.serialization.jackson.jackson
 
 // TODO: proper config for different environments
@@ -42,6 +42,12 @@ private val client = HttpClient(CIO) {
     }
     install(HttpTimeout) {
         requestTimeoutMillis = 60_000
+    }
+    install(HttpRequestRetry) {
+        retryIf(maxRetries = 10) { _, response ->
+            response.status.value in 500..599 || response.status == HttpStatusCode.TooManyRequests
+        }
+        exponentialDelay(base = 5.0)
     }
     defaultRequest {
         url("https://api.openai.com/")
